@@ -1,0 +1,44 @@
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Environment and secrets
+.env
+.env.*
+*.env
+!.env.example
+
+# Python caches and metadata
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# IDE/editor and OS files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Build outputs
+build/
+dist/
+
+# Dependency folders (if added later)
+node_modules/
+
+# Logs
+*.log
+
+# Project-generated output
+io/output/*
+!io/output/.gitkeep

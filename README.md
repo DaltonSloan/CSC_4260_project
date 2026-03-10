@@ -14,7 +14,7 @@ Data engineering and analysis workspace for loading HVAC and whole-building ener
 
 ### Recommended (Dev Container)
 
-- Docker Desktop running
+- Docker Engine running (Docker Desktop or Colima)
 - VS Code
 - VS Code extension: Dev Containers (`ms-vscode-remote.remote-containers`)
 
@@ -28,7 +28,7 @@ Data engineering and analysis workspace for loading HVAC and whole-building ener
 1. Open this folder in VS Code.
 2. Run `Dev Containers: Reopen in Container`.
 3. Wait for first-time build and post-create setup to finish.
-   - `.devcontainer/post-create.sh` installs `requirements.txt`, configures `uv`, and shell tooling.
+   - `.devcontainer/post-create.sh` installs Python dependencies from `requirements.txt`.
 4. Open a terminal in the container and verify:
 
 ```bash

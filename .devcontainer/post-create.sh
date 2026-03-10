@@ -7,28 +7,21 @@ if ! printf '%s\n' "$safe_dirs" | grep -Fxq "$workspace_dir"; then
   git config --global --add safe.directory "$workspace_dir"
 fi
 
-python3 -m pip install --upgrade pip
-python3 -m pip install -r requirements.txt
+retry() {
+  local max_attempts="$1"
+  local sleep_seconds="$2"
+  shift 2
+  local attempt=1
 
-if ! command -v uv >/dev/null 2>&1; then
-  curl -LsSf https://astral.sh/uv/install.sh | sh
-fi
+  until "$@"; do
+    if [ "$attempt" -ge "$max_attempts" ]; then
+      return 1
+    fi
+    echo "Command failed (attempt ${attempt}/${max_attempts}): $*" >&2
+    attempt=$((attempt + 1))
+    sleep "$sleep_seconds"
+  done
+}
 
-touch "$HOME/.bashrc"
-if ! grep -Fq 'export PATH="$HOME/.local/bin:$PATH"' "$HOME/.bashrc"; then
-  echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.bashrc"
-fi
-
-if [ ! -d "$HOME/.oh-my-bash" ]; then
-  git clone --depth=1 https://github.com/ohmybash/oh-my-bash.git "$HOME/.oh-my-bash"
-fi
-
-if ! grep -Fq 'source "$OSH/oh-my-bash.sh"' "$HOME/.bashrc"; then
-  cat <<'EOF' >> "$HOME/.bashrc"
-
-export OSH="$HOME/.oh-my-bash"
-OSH_THEME="font"
-plugins=(git)
-source "$OSH/oh-my-bash.sh"
-EOF
-fi
+retry 3 3 python3 -m pip install --upgrade pip
+retry 3 3 python3 -m pip install -r requirements.txt

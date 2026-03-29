@@ -1,10 +1,13 @@
 {
     "name": "CSC 4260 Project",
     "build": {
-        "dockerfile": "Dockerfile"
+        "dockerfile": "Dockerfile",
+        "args": {
+            "PYTHON_VARIANT": "3.12-bookworm"
+        }
     },
     "init": true,
-    "overrideCommand": true,
+    "overrideCommand": false,
     "userEnvProbe": "none",
 
     // Features to add to the container
@@ -15,7 +18,9 @@
 
     // Container runtime settings
     "containerEnv": {
-        "PYTHONUNBUFFERED": "1"
+        "PYTHONUNBUFFERED": "1",
+        "PIP_DISABLE_PIP_VERSION_CHECK": "1",
+        "PIP_NO_CACHE_DIR": "1"
     },
 
     // Shared host/container file exchange folders
@@ -40,14 +45,15 @@
                 "github.copilot"
             ],
             "settings": {
-                "python.defaultInterpreterPath": "/usr/local/python/current/bin/python"
+                "python.defaultInterpreterPath": "/usr/local/bin/python3"
             }
         }
     },
 
     // Post-create command
     "postCreateCommand": "bash .devcontainer/post-create.sh",
+    "updateContentCommand": "bash .devcontainer/post-create.sh",
 
     // Initialization
-    "remoteUser": "root"
+    "remoteUser": "vscode"
 }

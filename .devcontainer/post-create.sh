@@ -2,6 +2,11 @@
 set -euo pipefail
 
 workspace_dir="${containerWorkspaceFolder:-$(pwd)}"
+cd "$workspace_dir"
+
+# Ensure shared mount points exist in both fresh clones and long-lived branches.
+mkdir -p io/input io/output
+
 safe_dirs="$(git config --global --get-all safe.directory || true)"
 if ! printf '%s\n' "$safe_dirs" | grep -Fxq "$workspace_dir"; then
   git config --global --add safe.directory "$workspace_dir"
@@ -24,4 +29,11 @@ retry() {
 }
 
 retry 3 3 python3 -m pip install --upgrade pip
+
+if [ ! -f requirements.txt ]; then
+  echo "requirements.txt not found in $workspace_dir" >&2
+  exit 1
+fi
+
 retry 3 3 python3 -m pip install -r requirements.txt
+python3 -m pip check

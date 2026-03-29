@@ -2,6 +2,12 @@
 
 Data engineering and analysis workspace for loading HVAC and whole-building energy CSVs into MySQL, then exploring results in notebooks.
 
+## Project Status (As of 2026-03-29)
+
+- Project phase: Mid-project (data ingestion and analysis ramp-up).
+- Environment evaluation: Dev container workflow validated and hardened for repeatable rebuilds.
+- Current focus: Loading newly collected CSV data and progressing analysis in notebooks.
+
 ## What This Repo Includes
 
 - `loader.py`: ingestion script that creates schema and upserts CSV data into MySQL.
@@ -29,6 +35,7 @@ Data engineering and analysis workspace for loading HVAC and whole-building ener
 2. Run `Dev Containers: Reopen in Container`.
 3. Wait for first-time build and post-create setup to finish.
    - `.devcontainer/post-create.sh` installs Python dependencies from `requirements.txt`.
+   - The container is pinned to Python `3.12-bookworm` in `.devcontainer/devcontainer.json` build args for reproducibility.
 4. Open a terminal in the container and verify:
 
 ```bash
@@ -39,6 +46,7 @@ pip --version
 Notes:
 - Port `8888` is forwarded for Jupyter.
 - `io/input` and `io/output` are mounted into container paths `/io/input` and `/io/output`.
+- `updateContentCommand` re-runs `.devcontainer/post-create.sh` when repository contents change after rebuild/reopen.
 
 ## 2) Setup Local Python Environment (Alternative)
 
@@ -115,6 +123,16 @@ In Dev Container, VS Code auto-forwards port `8888`.
 - `Missing required env vars`: verify `.env` exists and has all `MYSQL_*` values.
 - `No CSV files matched`: verify `CSV_GLOB` in `.env` and file locations.
 - Connection timeout/auth errors: run `scripts/test_db_connections.py` and review hints.
+- If devcontainer dependencies drift, rebuild container and rerun:
+  - `bash .devcontainer/post-create.sh`
+  - `python3 -m pip check`
+
+## Devcontainer Reliability Checklist
+
+- Base image version is pinned via `.devcontainer/Dockerfile` + build arg (`3.12-bookworm`).
+- Post-create is idempotent and retry-safe for pip installs.
+- Post-create validates dependency consistency with `pip check`.
+- Shared I/O directories are auto-created by post-create (`io/input`, `io/output`).
 
 ## Security Notes
 

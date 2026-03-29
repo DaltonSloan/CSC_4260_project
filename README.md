@@ -14,7 +14,7 @@ Data engineering and analysis workspace for loading HVAC and whole-building ener
 - `scripts/test_db_connections.py`: validates DB connectivity for one or more user env files.
 - `data/`: source CSV files.
 - `.devcontainer/`: reproducible VS Code Dev Container setup.
-- `io/input` and `io/output`: host-container shared folders for file exchange.
+- `io/input` and `io/output`: repo-scoped file exchange folders.
 
 ## Prerequisites
 
@@ -35,6 +35,7 @@ Data engineering and analysis workspace for loading HVAC and whole-building ener
 2. Run `Dev Containers: Reopen in Container`.
 3. Wait for first-time build and post-create setup to finish.
    - `.devcontainer/post-create.sh` installs Python dependencies from `requirements.txt`.
+   - JupyterLab is installed as part of the project dependencies, so `python -m jupyter lab` works without extra setup.
    - The container is pinned to Python `3.12-bookworm` in `.devcontainer/devcontainer.json` build args for reproducibility.
 4. Open a terminal in the container and verify:
 
@@ -45,7 +46,8 @@ pip --version
 
 Notes:
 - Port `8888` is forwarded for Jupyter.
-- `io/input` and `io/output` are mounted into container paths `/io/input` and `/io/output`.
+- `io/input` and `io/output` live in the repo and are always available after clone.
+- `/io/input` and `/io/output` are recreated inside the container as convenience symlinks to those repo folders.
 - `updateContentCommand` re-runs `.devcontainer/post-create.sh` when repository contents change after rebuild/reopen.
 
 ## 2) Setup Local Python Environment (Alternative)
@@ -81,6 +83,8 @@ For team testing with per-user env files:
 ```bash
 cp .env.example env/.env.<yourname>
 ```
+
+The `env/` folder is tracked with a `.gitkeep`, so the copy command works on a fresh clone.
 
 ## 4) Test DB Connectivity
 
@@ -123,6 +127,7 @@ In Dev Container, VS Code auto-forwards port `8888`.
 - `Missing required env vars`: verify `.env` exists and has all `MYSQL_*` values.
 - `No CSV files matched`: verify `CSV_GLOB` in `.env` and file locations.
 - Connection timeout/auth errors: run `scripts/test_db_connections.py` and review hints.
+- If you pulled `.devcontainer/` changes into an existing local clone, run `Dev Containers: Rebuild Container` once so the updated container config takes effect.
 - If devcontainer dependencies drift, rebuild container and rerun:
   - `bash .devcontainer/post-create.sh`
   - `python3 -m pip check`
@@ -132,7 +137,8 @@ In Dev Container, VS Code auto-forwards port `8888`.
 - Base image version is pinned via `.devcontainer/Dockerfile` + build arg (`3.12-bookworm`).
 - Post-create is idempotent and retry-safe for pip installs.
 - Post-create validates dependency consistency with `pip check`.
-- Shared I/O directories are auto-created by post-create (`io/input`, `io/output`).
+- Repo-scoped `env/`, `io/input`, and `io/output` folders are created or preserved by post-create.
+- `/io/input` and `/io/output` are restored as container-local symlinks instead of extra host bind mounts.
 
 ## Security Notes
 

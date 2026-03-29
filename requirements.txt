@@ -16,3 +16,4 @@ python-dotenv>=1.0.1
 
 # Notebook execution support
 ipykernel>=6.29.0
+jupyterlab==4.5.6

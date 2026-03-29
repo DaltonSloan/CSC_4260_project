@@ -1,7 +1,8 @@
 # Python virtual environments
 .venv/
 venv/
-env/
+env/*
+!env/.gitkeep
 
 # Environment and secrets
 .env

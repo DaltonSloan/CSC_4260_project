@@ -7,7 +7,9 @@
         }
     },
     "init": true,
-    "overrideCommand": false,
+    // Let Dev Containers replace the image's default `python3` command with
+    // its keep-alive command so the container stays running during attach.
+    "overrideCommand": true,
     "userEnvProbe": "none",
 
     // Features to add to the container
@@ -22,12 +24,9 @@
         "PIP_DISABLE_PIP_VERSION_CHECK": "1",
         "PIP_NO_CACHE_DIR": "1"
     },
-
-    // Shared host/container file exchange folders
-    "mounts": [
-        "source=${localWorkspaceFolder}/io/input,target=/io/input,type=bind,consistency=cached",
-        "source=${localWorkspaceFolder}/io/output,target=/io/output,type=bind,consistency=cached"
-    ],
+    "remoteEnv": {
+        "PATH": "/home/vscode/.local/bin:${containerEnv:PATH}"
+    },
 
     // Port forwarding
     "forwardPorts": [8888],

@@ -1,4 +1,4 @@
-# Occupancy Detection in the Ashraf Islam Engineering Building (AIEB)
+# Updated Project Report
 
 Team Members: Samuel Hartmann, Fengjun Han, Garrett Green, Dalton Sloan
 
@@ -6,155 +6,94 @@ Domain Experts: Chandler Norman, Norman Walker, Elisabeth Humphrey, Dr. Steven A
 
 ## 1. Problem Statement
 
-After the initial exploratory data analysis, the project objective was revised. Instead of treating the project as a broad HVAC efficiency study, the team is now focusing on determining room occupancy from indoor sensor behavior. The current working feature set is:
+The original project plan focused on evaluating HVAC efficiency in the Ashraf Islam Engineering Building at Tennessee Tech.
 
-- VOC
-- temperature
-- humidity
-- floor-vibration-related activity
+After exploratory data analysis, the project objective was revised. The current objective is to determine occupancy using VOC, temperature, humidity, and floor vibrations.
 
-In the current data exports, the floor-vibration idea is represented most closely by the available noise-level signal in Room 354, so this draft treats that measurement as the current activity proxy. This revision was made after the exploratory analysis showed that the room-level signals provide a more direct and efficient path to occupancy inference than trying to evaluate overall HVAC efficiency from mixed building-level and AHU-level data alone.
+This change was made after reviewing the exploratory work and deciding that occupancy detection is the more efficient focus for the data currently available to the team.
 
-The data comes from the AIEB building automation and sensor infrastructure. The repository currently includes whole-building electric consumption, AHU telemetry for three air-handling units, and room-level sensor feeds for Rooms 354 and 361.
+TODO: Add the final team-approved wording for the updated problem statement.
 
-The room-level feeds are the most important inputs for the revised objective:
-
-- Room 354 includes carbon dioxide, VOC, noise level, and zone temperature.
-- Room 361 includes carbon dioxide, zone air humidity, and zone temperature.
-
-That means the current dataset does not yet place all four target occupancy features in one room export at the same time. This update therefore documents the occupancy pivot, validates the usefulness of the candidate sensor signals, and sets up the next phase where those signals can be aligned into one modeling table.
-
-At this stage of the project, success is measured by whether the exploratory analysis supports the revised objective. Informal success measures for this draft are:
-
-- show that room-level sensor patterns shift between work hours and off hours,
-- show that VOC, humidity, temperature, and the activity proxy are stable enough to use in later modeling,
-- keep the earlier whole-building and AHU analysis as supporting context rather than the final target,
-- preserve a clear and reproducible workflow that can be extended into an occupancy model later in the semester.
+TODO: Add a short explanation of why this occupancy objective matters for the building or the project goals.
 
 ## 2. Data and Exploratory Analysis
 
-The source data is heterogeneous and sparse by design. Many rows contain only one or two active measurements while the remaining columns are blank. For that reason, the first analytical task was to normalize timestamps and aggregate the data into consistent 15-minute intervals before comparing rooms or operating periods.
+The repository currently contains multiple building and room-level HVAC datasets, including:
 
-The main preparation steps were:
+- whole-building energy data,
+- Room 354 data with carbon dioxide, VOC, noise level, and zone temperature fields,
+- Room 361 data with carbon dioxide, humidity, and zone temperature fields,
+- additional 361 HVAC data with discharge air temperature, zone temperature, zone carbon dioxide, airflow-related fields, and effective occupancy fields.
 
-- remove non-data metadata rows from the whole-building energy export,
-- convert all timestamps into a consistent datetime format,
-- resample room and AHU measurements into 15-minute averages to align asynchronous sensor updates,
-- preserve measurement-specific missing values instead of dropping full rows,
-- label observations by hour of day, work hours, and weekday versus weekend.
+Work already completed in the repository includes:
 
-The exploratory analysis changed the project direction in a useful way:
+- collecting and organizing the available CSV files,
+- preparing a workflow for loading HVAC data into a database,
+- creating an initial notebook that plots whole-building energy consumption over time,
+- creating an initial whole-building plot with a 24-hour moving average,
+- creating an initial notebook that plots discharge air temperature and zone temperature for 361 data.
 
-- whole-building energy clearly rises during daytime hours, so occupancy-linked demand is visible at the building level,
-- Room 354 shows stronger variation than Room 361, especially in VOC, carbon dioxide, and temperature,
-- Room 361 contributes the humidity signal that is directly relevant to the revised occupancy objective,
-- AHU data still helps explain building behavior, but it is less direct than room sensors for identifying whether a space is occupied.
+TODO: Add any additional exploratory plots the team has already made outside the current repository.
 
-Based on those findings, the team concluded that occupancy detection is a better and more efficient final objective than a broad HVAC-efficiency score.
+TODO: Add notes from any domain expert conversations that have already happened.
+
+TODO: Add screenshots or exported figures from the original notebooks if they are needed in the final submission.
 
 ## 3. Methods and Tools
 
-This updated report focuses on descriptive analytics that justify the revised project objective. The current workflow is designed to answer a practical question first: do the available room-level signals behave in a way that makes occupancy modeling reasonable?
+Methods and tools already reflected in the repository include:
 
-Methods used in this draft:
+- CSV-based HVAC and energy data collection,
+- a database loading workflow for structured storage,
+- notebook-based exploratory analysis,
+- plotting and visualization of time-series sensor data.
 
-- time-series alignment through timestamp parsing and 15-minute resampling,
-- operational segmentation by work hours versus off hours,
-- weekday versus weekend comparison for building-level energy demand,
-- room-level descriptive statistics for VOC, humidity, temperature, activity proxy, and carbon dioxide where available,
-- AHU-level descriptive statistics retained as supporting building-operation context,
-- comparison of work-hour versus off-hour means to identify sensor shifts that are consistent with occupied conditions.
+At this point, the completed work is still exploratory rather than final-model driven.
 
-Tools used in this draft:
+TODO: Add the exact cleaning steps the team has already used.
 
-- spreadsheet-style data cleaning and tabular analysis,
-- figure generation for time-series comparisons,
-- notebook-based documentation for the analysis workflow,
-- a reproducible project workflow so the same summaries and figures can be rebuilt from the current exports.
+TODO: Add the feature engineering steps the team has already completed.
 
-The current baseline is not yet a final occupancy classifier. Instead, it is an occupancy-oriented feature-screening workflow:
+TODO: Add the final modeling approach once the team selects it.
 
-- whole-building energy and AHU patterns provide context for when activity is likely higher,
-- Room 354 is used to examine VOC, temperature, and the activity proxy,
-- Room 361 is used to examine humidity and temperature,
-- carbon dioxide is retained as a supporting comparison signal because it still responds to occupancy-related activity, even though it is no longer the main project objective.
-
-This baseline is appropriate for the current phase because the team is still aligning the available room streams and selecting the final occupancy target definition.
+TODO: Add how occupancy will be labeled or estimated for evaluation.
 
 ## 4. Preliminary Results
 
-### Why the Objective Changed
+The work currently present in the repository supports the following completed progress:
 
-The earlier efficiency review still produced useful evidence:
+- whole-building energy consumption has been plotted over time,
+- a 24-hour moving average has been generated for whole-building energy,
+- discharge air temperature and zone temperature have been plotted for 361 data,
+- the current datasets include fields related to the updated occupancy objective, including VOC, temperature, humidity, and a vibration-related activity proxy through the noise-level field.
 
-- average whole-building consumption during working hours was 74.81 kWh, compared with 62.47 kWh during off hours,
-- average weekday consumption was 71.34 kWh, compared with 64.07 kWh on the weekend,
-- the highest observed hourly consumption was 95.49 kWh at 4:00 p.m. on February 2, 2026,
-- AHU 03 also showed a very high discharge-air-temperature maximum of 126.6 degrees Fahrenheit, which makes it interesting for operations review but not ideal as the main project target.
+TODO: Add the team’s written interpretation of the whole-building energy trend plot.
 
-Those results confirmed that the building data is useful, but they also showed that direct occupancy inference should be built from the room sensors instead of from system-level efficiency metrics alone.
+TODO: Add the team’s written interpretation of the 361 temperature plot.
 
-![Average whole-building energy by hour](figures/whole_building_hourly_profile.png)
+TODO: Add occupancy-specific exploratory results for VOC, humidity, and floor vibrations once the team finishes that analysis.
 
-### Room-Level Occupancy Signals
-
-The revised project objective is supported most strongly by the room-level signals:
-
-- Room 354 VOC averaged 85.28, increased to 96.36 during working hours, dropped to 74.23 off hours, and reached a maximum of 689.21.
-- Room 354 noise level averaged 54.73, with a working-hours mean of 55.21, an off-hours mean of 54.25, and a maximum of 74.62.
-- Room 354 temperature averaged 70.29 degrees Fahrenheit, with a working-hours mean of 70.93, an off-hours mean of 69.66, and a maximum of 78.95.
-- Room 361 humidity averaged 40.29 percent, with a working-hours mean of 40.79, an off-hours mean of 39.69, and a maximum of 60.07.
-- Room 361 temperature averaged 69.83 degrees Fahrenheit, with a working-hours mean of 69.90, an off-hours mean of 69.77, and a maximum of 73.40.
-
-These signals are not identical in strength, but they are directionally useful. VOC and temperature in Room 354 move more clearly with building activity, while Room 361 contributes the humidity signal that the revised objective needs. The noise-level channel in Room 354 is modest but still useful as a first activity proxy for the floor-vibration concept described in the revised objective.
-
-Carbon dioxide remains a helpful comparison signal:
-
-- Room 354 had an average carbon dioxide level of 480.27 parts per million, with 1.84 percent of 15-minute intervals above 800 parts per million.
-- Room 361 had an average carbon dioxide level of 455.57 parts per million, with only 0.04 percent of intervals above 800 parts per million.
-
-That contrast supports the idea that Room 354 is the better candidate for early occupancy-pattern analysis.
-
-![Room occupancy-oriented sensor trends](figures/room_occupancy_sensor_timeseries.png)
-
-### Supporting Building Context
-
-The earlier room and AHU figures still matter because they explain why the project moved away from broad efficiency scoring:
-
-- Room 354 is consistently more variable than Room 361,
-- AHU behavior differs substantially across units, which is important operationally but harder to map directly to room occupancy,
-- building-level energy confirms day-versus-night behavior, but it is too coarse to serve as the main occupancy feature set by itself.
-
-![Room temperature and carbon dioxide trends](figures/room_temperature_co2_timeseries.png)
-
-![AHU discharge temperature and carbon dioxide](figures/ahu_discharge_temp_and_co2.png)
-
-### Interpretation
-
-Taken together, these results support the revised project direction:
-
-- the exploratory analysis justified changing the objective from broad HVAC efficiency review to occupancy detection,
-- room-level environmental signals are more direct and efficient for occupancy work than whole-building or AHU-only summaries,
-- the current project files already contain the right kinds of signals, but they still need to be aligned into one consistent occupancy-modeling dataset,
-- Room 354 is the strongest immediate candidate for early occupancy experiments because it already contains VOC, temperature, carbon dioxide, and the current activity proxy.
+TODO: Add any quantitative summaries that the team has already reviewed and approved.
 
 ## 5. Professionalism and Reproducibility
 
-This update is organized so another team member can reproduce the draft results with minimal difficulty. The report, figures, summary tables, and notebook all reflect the same set of current data exports. The workflow is repeatable, and the project files are organized so the same analysis can be refreshed as new data becomes available.
+The current repository already shows:
 
-The updated submission materials include the revised report, summary outputs, supporting figures, and notebook. Together, they provide a consistent record of the exploratory findings that led to the occupancy-detection objective.
+- organized project data files,
+- saved exploratory notebooks,
+- a repeatable data-loading workflow,
+- version-controlled project materials.
 
-Contribution tracking note:
+TODO: Add the team’s contribution breakdown.
 
-- The repository history currently records the project under the names DaltonSloan and Dalton Sloan.
-- The updated report and notebook workflow for this draft are centralized in the current project deliverables.
-- If the final course submission requires a finer member-by-member breakdown, the team should replace this note with the agreed ownership summary before submitting the final report and poster.
+TODO: Add any required note about meetings, expert feedback, or communication process.
+
+TODO: Add the final list of submission artifacts once the team confirms them.
 
 ## 6. Next Steps
 
-This is still a preliminary-results draft, not the final project report. The next analytical steps should be:
+TODO: Add the next steps the team has agreed on for occupancy analysis.
 
-- align the room-level streams so VOC, temperature, humidity, and the activity proxy can be used in one occupancy-modeling table,
-- decide how occupancy will be labeled or approximated for training and evaluation,
-- build a simple baseline occupancy model before moving to more advanced methods,
-- keep whole-building energy and AHU signals as supporting context features rather than as the primary project target.
+TODO: Add the remaining work needed for the notebook.
+
+TODO: Add the remaining work needed for the final report or poster.

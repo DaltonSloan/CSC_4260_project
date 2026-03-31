@@ -154,6 +154,38 @@ def export_room354_figures() -> None:
     fig.savefig(FIG_DIR / "room354_feature_comparison.png", dpi=180)
     plt.close(fig)
 
+    corr_df = merged[
+        ["voc", "co2", "humidity", "temperature", "airflow_cfm", "people_estimated"]
+    ].rename(
+        columns={
+            "voc": "VOC",
+            "co2": "CO2",
+            "humidity": "Humidity",
+            "temperature": "Temperature",
+            "airflow_cfm": "Air Flow (cfm)",
+            "people_estimated": "Estimated People",
+        }
+    )
+    corr_matrix = corr_df.corr()
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+    sns.heatmap(
+        corr_matrix,
+        annot=True,
+        fmt=".2f",
+        cmap="coolwarm",
+        vmin=-1,
+        vmax=1,
+        center=0,
+        square=True,
+        linewidths=0.5,
+        ax=ax,
+    )
+    ax.set_title("Correlation Matrix for Room 354 Features")
+    fig.tight_layout()
+    fig.savefig(FIG_DIR / "room354_correlation_matrix.png", dpi=180)
+    plt.close(fig)
+
     fig, ax = plt.subplots(figsize=(15, 4))
     sns.lineplot(
         x=merged.index,

@@ -41,6 +41,7 @@ Work already completed in the repository includes:
 Occupancy-focused exploratory plots currently supported by the Room 354 notebook include:
 
 - a 4-panel time-series comparison of VOC/CO2, humidity, temperature, and discharge air flow,
+- a correlation matrix across the main room-level features and the estimated occupancy signal,
 - a separate estimated occupancy time series with airflow overlaid on a secondary axis.
 
 TODO: Add notes from any domain expert conversations that have already happened.
@@ -150,6 +151,16 @@ The 4-panel comparison indicates the following occupancy-related behavior:
 - humidity showed weaker direct relationships with the main occupancy features than VOC and CO2,
 - discharge airflow had weak direct correlation with CO2 (-0.064) and VOC (0.172), which suggests it is more useful as a ventilation context signal than as a direct people-count proxy.
 
+The new correlation matrix gives the same picture in a more complete form:
+
+- estimated occupancy vs CO2 correlation: 0.978,
+- estimated occupancy vs VOC correlation: 0.748,
+- estimated occupancy vs temperature correlation: 0.392,
+- estimated occupancy vs humidity correlation: 0.265,
+- estimated occupancy vs discharge airflow correlation: -0.031.
+
+This is a useful check because it shows that the final estimate is driven mostly by CO2 and VOC, while airflow is helping through the ventilation adjustment instead of acting like a direct occupancy signal.
+
 Additional airflow findings from the notebook:
 
 - discharge airflow coverage is approximately 98.0 percent of the 5-minute bins,
@@ -200,11 +211,14 @@ Interpretation of the notebook plots:
 Results currently supported directly by the notebook visualizations:
 
 - the Room 354 notebook now includes a 4-panel comparison of VOC/CO2, humidity, temperature, and discharge air flow,
+- the notebook includes a correlation matrix showing how the room-level features relate to each other and to the final occupancy estimate,
 - the notebook also includes an estimated occupancy graph with airflow overlaid so the inferred people-count trend can be interpreted together with ventilation changes.
 
 ![Figure 1. Room 354 4-panel time-series comparison of VOC/CO2, humidity, temperature, and discharge air flow generated from the occupancy notebook.](figures/room354_feature_comparison.png)
 
-![Figure 2. Room 354 estimated occupancy over time with discharge air flow overlay generated from the airflow-aware notebook model.](figures/room354_estimated_occupancy.png)
+![Figure 2. Room 354 correlation matrix across VOC, CO2, humidity, temperature, discharge air flow, and estimated occupancy generated from the occupancy notebook.](figures/room354_correlation_matrix.png)
+
+![Figure 3. Room 354 estimated occupancy over time with discharge air flow overlay generated from the airflow-aware notebook model.](figures/room354_estimated_occupancy.png)
 
 In the current Room 354 notebook, the strongest evidence for occupancy detection is the repeated joint rise of VOC and CO2 together with the more plausible airflow-adjusted CO2 anchor. These comparisons do not replace labeled accuracy metrics, but they do provide a reasonable basis for preferring the blended airflow-aware estimate over the simpler baseline in the current exploratory phase.
 

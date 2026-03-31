@@ -24,57 +24,56 @@ REPORT_MD = ROOT / "reports" / "updated_project_report.md"
 REPORT_PDF = ROOT / "reports" / "updated_project_report.pdf"
 FIG_DIR = ROOT / "reports" / "figures"
 IMAGE_PATTERN = re.compile(r"^!\[(.*?)\]\((.*?)\)$")
+ROOM_VOLUME_FT3 = 50 * 30 * 15
+ROOM_VOLUME_M3 = ROOM_VOLUME_FT3 * 0.0283168
+BASELINE_ACH = 4.0
+
+
+def load_point_history(path: Path, rename_map: dict[str, str]) -> pd.DataFrame:
+    raw = pd.read_csv(path)
+    raw["time"] = pd.to_datetime(raw["dateTimeUtc"], errors="coerce")
+    raw["value"] = pd.to_numeric(raw["value"], errors="coerce")
+
+    wide = (
+        raw.loc[raw["pointDisplayName"].isin(rename_map), ["time", "pointDisplayName", "value"]]
+        .dropna(subset=["time"])
+        .pivot_table(index="time", columns="pointDisplayName", values="value", aggfunc="mean")
+        .sort_index()
+        .rename(columns=rename_map)
+        .resample("5min")
+        .mean()
+    )
+    wide.columns.name = None
+    return wide
 
 
 def load_room354_data() -> pd.DataFrame:
-    df1 = pd.read_csv(ROOT / "data" / "354.csv")
-    df2 = pd.read_csv(ROOT / "data" / "354_2.csv")
-
-    df1["time"] = pd.to_datetime(df1["time"], errors="coerce")
-    df2["time"] = pd.to_datetime(df2["time"], errors="coerce")
-
-    for col in ["CO2_value", "VOC_value", "Zone Temp_value"]:
-        if col in df1.columns:
-            df1[col] = pd.to_numeric(df1[col], errors="coerce")
-
-    for col in ["Zone CO2_value", "Zone Air Humid_value", "Zone Temp_value"]:
-        if col in df2.columns:
-            df2[col] = pd.to_numeric(df2[col], errors="coerce")
-
-    s1 = (
-        df1[["time", "CO2_value", "VOC_value", "Zone Temp_value"]]
-        .set_index("time")
-        .sort_index()
-        .resample("5min")
-        .mean(numeric_only=True)
-        .rename(
-            columns={
-                "CO2_value": "co2_s1",
-                "VOC_value": "voc",
-                "Zone Temp_value": "temp_s1",
-            }
-        )
+    iaq = load_point_history(
+        ROOT / "data" / "354_IAQ_30day(03-28-2026).csv",
+        {
+            "CO2": "co2_iaq",
+            "VOC": "voc",
+            "Zone Air Humid": "humidity_iaq",
+            "Zone Temp": "temp_iaq",
+        },
     )
 
-    s2 = (
-        df2[["time", "Zone CO2_value", "Zone Air Humid_value", "Zone Temp_value"]]
-        .set_index("time")
-        .sort_index()
-        .resample("5min")
-        .mean(numeric_only=True)
-        .rename(
-            columns={
-                "Zone CO2_value": "co2_s2",
-                "Zone Air Humid_value": "humidity",
-                "Zone Temp_value": "temp_s2",
-            }
-        )
+    fpb = load_point_history(
+        ROOT / "data" / "354_FPB_30day(03-28-2026).csv",
+        {
+            "Zone CO2": "co2_fpb",
+            "Zone Air Humid": "humidity_fpb",
+            "Zone Temp": "temp_fpb",
+            "Discharge Air Flow": "airflow_cfm",
+        },
     )
 
-    merged = s1.join(s2, how="outer")
-    merged["co2"] = merged[["co2_s1", "co2_s2"]].mean(axis=1)
-    merged["temperature"] = merged[["temp_s1", "temp_s2"]].mean(axis=1)
-    merged = merged[["voc", "co2", "humidity", "temperature"]].copy()
+    merged = iaq.join(fpb, how="outer")
+    merged["co2"] = merged[["co2_iaq", "co2_fpb"]].mean(axis=1)
+    merged["humidity"] = merged[["humidity_iaq", "humidity_fpb"]].mean(axis=1)
+    merged["temperature"] = merged[["temp_iaq", "temp_fpb"]].mean(axis=1)
+    merged["airflow_ach"] = merged["airflow_cfm"] * 60 / ROOM_VOLUME_FT3
+    merged = merged[["voc", "co2", "humidity", "temperature", "airflow_cfm", "airflow_ach"]].copy()
     return merged
 
 
@@ -88,8 +87,8 @@ def minmax_robust(series: pd.Series, q_low: float = 0.05, q_high: float = 0.95) 
 
 def add_occupancy_estimate(merged: pd.DataFrame) -> pd.DataFrame:
     merged = merged.copy()
-    volume_m3 = 50 * 30 * 15 * 0.0283168
-    q_m3_h = 4.0 * volume_m3
+    merged["ach_effective"] = merged["airflow_ach"].fillna(BASELINE_ACH)
+    q_m3_h = merged["ach_effective"] * ROOM_VOLUME_M3
     co2_delta = (merged["co2"] - 420.0).clip(lower=0)
     merged["people_co2_anchor"] = q_m3_h * (co2_delta * 1e-6) / 0.018
 
@@ -115,7 +114,7 @@ def export_room354_figures() -> None:
     merged = add_occupancy_estimate(load_room354_data())
     plot_df = merged.reset_index()
 
-    fig, axes = plt.subplots(3, 1, figsize=(15, 10), sharex=True)
+    fig, axes = plt.subplots(4, 1, figsize=(15, 12), sharex=True)
     sns.lineplot(data=plot_df, x="time", y="voc", ax=axes[0], label="VOC")
     sns.lineplot(data=plot_df, x="time", y="co2", ax=axes[0], label="CO2 (ppm)")
     axes[0].set_title("VOC and CO2 Over Time (Room 354)")
@@ -136,9 +135,21 @@ def export_room354_figures() -> None:
         label="Temperature",
     )
     axes[2].set_title("Temperature Over Time (Room 354)")
-    axes[2].set_ylabel("Temperature")
-    axes[2].set_xlabel("Time")
+    axes[2].set_ylabel("Temperature (F)")
     axes[2].legend(loc="upper left")
+
+    sns.lineplot(
+        data=plot_df,
+        x="time",
+        y="airflow_cfm",
+        ax=axes[3],
+        color="purple",
+        label="Discharge Air Flow (cfm)",
+    )
+    axes[3].set_title("Discharge Air Flow Over Time (Room 354)")
+    axes[3].set_ylabel("Air Flow (cfm)")
+    axes[3].set_xlabel("Time")
+    axes[3].legend(loc="upper left")
     fig.tight_layout()
     fig.savefig(FIG_DIR / "room354_feature_comparison.png", dpi=180)
     plt.close(fig)
@@ -151,10 +162,24 @@ def export_room354_figures() -> None:
         label="Estimated People",
         ax=ax,
     )
-    ax.set_title("Estimated Occupancy Over Time")
+    ax.set_title("Estimated Occupancy Over Time (Airflow-Aware CO2 Anchor)")
     ax.set_ylabel("Estimated People")
     ax.set_xlabel("Time")
-    ax.legend(loc="upper left")
+
+    ax2 = ax.twinx()
+    sns.lineplot(
+        x=merged.index,
+        y=merged["airflow_cfm"],
+        color="purple",
+        alpha=0.3,
+        label="Discharge Air Flow (cfm)",
+        ax=ax2,
+    )
+    ax2.set_ylabel("Air Flow (cfm)")
+
+    lines1, labels1 = ax.get_legend_handles_labels()
+    lines2, labels2 = ax2.get_legend_handles_labels()
+    ax.legend(lines1 + lines2, labels1 + labels2, loc="upper left")
     fig.tight_layout()
     fig.savefig(FIG_DIR / "room354_estimated_occupancy.png", dpi=180)
     plt.close(fig)

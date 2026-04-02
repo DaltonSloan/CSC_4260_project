@@ -6,7 +6,7 @@ Domain Experts: Chandler Norman, Norman Walker, Elisabeth Humphrey, Dr. Steven A
 
 ## 1. Problem Statement
 
-The original project plan focused on evaluating HVAC efficiency in the Ashraf Islam Engineering Building at Tennessee Tech. After exploratory analysis, the project focus was narrowed to Room 354 occupancy estimation using indoor air quality signals, with airflow used as a ventilation adjustment. The current notebook-based question is whether occupancy can be inferred from two 30-day Room 354 exports. The IAQ export contains VOC, CO2, humidity, and temperature measurements. The FPB export contains zone CO2, humidity, temperature, and discharge air flow.
+The original project plan focused on evaluating HVAC efficiency in the Ashraf Islam Engineering Building at Tennessee Tech. After exploratory analysis, the project focus was narrowed to Room 354 occupancy estimation using indoor air quality signals, with airflow used as a ventilation adjustment. The main notebook-based question is whether occupancy can be inferred from two 30-day Room 354 exports. The IAQ export contains VOC, CO2, humidity, and temperature measurements. The FPB export contains zone CO2, humidity, temperature, and discharge air flow. A separate one-day Room 361 example is used later in the report only as a limited reference check rather than as the primary analysis dataset.
 
 This occupancy objective matters because occupancy-aware controls can reduce wasted HVAC runtime while still maintaining indoor air quality. If validated, a Room 354 occupancy model could support smarter building operation, reduced energy use during low-occupancy periods, and lower HVAC operating cost. For the current notebook phase, success is defined informally as: clear co-movement among occupancy-related signals, a plausible per-timestamp occupancy estimate, and a useful comparison between a simple airflow-adjusted CO2 baseline and the blended model.
 
@@ -143,7 +143,7 @@ TODO: Add any additional methods the team tried outside the Room 354 notebook if
 
 The current Room 354 notebook merges IAQ and FPB sensor data from 2026-02-27 06:00 through 2026-03-29 04:05 at 5-minute intervals and compares VOC, CO2, humidity, temperature, and discharge airflow directly.
 
-The 4-panel comparison indicates the following occupancy-related behavior:
+Figure 1, the 4-panel comparison, indicates the following occupancy-related behavior:
 
 - VOC vs CO2 Pearson correlation: 0.751 (strong positive),
 - CO2 vs temperature Pearson correlation: 0.414 (moderate positive),
@@ -151,7 +151,7 @@ The 4-panel comparison indicates the following occupancy-related behavior:
 - humidity showed weaker direct relationships with the main occupancy features than VOC and CO2,
 - discharge airflow had weak direct correlation with CO2 (-0.064) and VOC (0.172), which suggests it is more useful as a ventilation context signal than as a direct people-count proxy.
 
-The new correlation matrix gives the same picture in a more complete form:
+Figure 2, the correlation matrix, gives the same picture in a more complete form:
 
 - estimated occupancy vs CO2 correlation: 0.978,
 - estimated occupancy vs VOC correlation: 0.748,
@@ -159,7 +159,7 @@ The new correlation matrix gives the same picture in a more complete form:
 - estimated occupancy vs humidity correlation: 0.265,
 - estimated occupancy vs discharge airflow correlation: -0.031.
 
-This is a useful check because it shows that the final estimate is driven mostly by CO2 and VOC, while airflow is helping through the ventilation adjustment instead of acting like a direct occupancy signal.
+This is a useful check because it shows that the final estimate is driven mostly by CO2 and VOC, while airflow is helping through the ventilation adjustment instead of acting like a direct occupancy signal. Temperature does show a moderate relationship with CO2 and VOC, but that relationship is not strong enough to make temperature a reliable standalone occupancy indicator in this classroom setting.
 
 Additional airflow findings from the notebook:
 
@@ -169,10 +169,14 @@ Additional airflow findings from the notebook:
 
 Evaluation framing for this phase:
 
-- no labeled occupancy ground truth is available yet, so accuracy-style metrics are not appropriate at this stage,
 - the current baseline is the airflow-aware CO2 anchor estimate,
 - the current primary model is the blended estimate that combines the airflow-aware CO2 anchor with VOC, humidity, and temperature,
-- current evaluation is therefore descriptive: feature correlation, plot interpretation, and comparison of the baseline occupancy curve against the blended occupancy curve.
+- most current evaluation remains descriptive: feature correlation, plot interpretation, and comparison of the baseline occupancy curve against the blended occupancy curve,
+- one manual headcount is available in the current report: a Room 361 count of 34 people taken at 1:30 PM,
+- that Room 361 comparison comes from a separate one-day example and should not be interpreted as having the same time span or evidentiary weight as the 30-day Room 354 analysis,
+- using the highlighted Room 361 peak value of 42 people against the manual count of 34 people gives an absolute error of 8 people and a percent error of about 23.5 percent,
+- because only one timestamped manual count is currently available, formal dataset-level metrics such as MAE and RMSE are not yet meaningful for the full model,
+- the Room 361 example is therefore used as a qualitative reference point rather than a full validation benchmark over an entire labeled dataset.
 
 Using measured airflow instead of a fixed 4 ACH assumption changed the baseline. The mean CO2-anchor estimate dropped from 5.22 people under a fixed 4 ACH assumption to 4.17 people under the airflow-aware anchor, a reduction of about 20 percent.
 
@@ -204,7 +208,12 @@ Interpretation of the notebook plots:
 - CO2 and VOC show the clearest shared peaks and remain the strongest occupancy indicators in the current data,
 - discharge airflow is not a strong standalone occupancy trigger, but it improves the model by adjusting the CO2 anchor for changing ventilation rates,
 - humidity changes more gradually over longer periods and appears more useful as a supporting feature than as a primary occupancy trigger,
-- temperature remains comparatively stable for most of the study period and is best treated as contextual support rather than a standalone occupancy signal,
+- temperature has a moderate correlation with CO2 and VOC, but it is likely sensitive to classroom activity differences such as laptop-heavy work days versus paper quiz or exam days, so it is best treated as contextual support rather than a standalone occupancy signal,
+- humidity is similarly limited because it tends to scale with temperature, which reduces its reliability as an independent occupancy indicator,
+- Figure 3 shows that the airflow-aware occupancy curve remains interpretable over time, but some peaks appear slightly earlier than the underlying room use because CO2 needs time to accumulate at the sensor location,
+- Figure 4 provides the current Room 361 reference example. A manual headcount of 34 people was taken at 1:30 PM, but the larger estimated peak appears later rather than exactly at 1:30 PM, which is consistent with delayed CO2 buildup around the sensor location,
+- that delay is physically plausible because CO2 accumulation depends on room volume, occupancy density, air leakage, and ventilation rate; in larger or better-ventilated rooms, CO2 can take substantially longer to build near the sensor before reaching a visible peak,
+- the estimated occupancy curve appears to lead actual room use by roughly one hour in some periods, which is likely caused by the time required for exhaled CO2 to accumulate and reach the sensor location,
 - compared with the airflow-aware CO2-only baseline, the blended estimate preserves major peaks while reducing some of the largest spikes,
 - the largest occupancy spikes should still be treated cautiously until vibration data, labels, or outdoor-air-fraction data are available for validation.
 
@@ -212,7 +221,9 @@ Results currently supported directly by the notebook visualizations:
 
 - the Room 354 notebook now includes a 4-panel comparison of VOC/CO2, humidity, temperature, and discharge air flow,
 - the notebook includes a correlation matrix showing how the room-level features relate to each other and to the final occupancy estimate,
-- the notebook also includes an estimated occupancy graph with airflow overlaid so the inferred people-count trend can be interpreted together with ventilation changes.
+- the notebook also includes an estimated occupancy graph with airflow overlaid so the inferred people-count trend can be interpreted together with ventilation changes,
+- the report now includes a single-day Room 361 example in Figure 4 showing CO2, airflow, and estimated occupancy, together with a manual headcount reference of 34 people taken at 1:30 PM,
+- Figures 1 through 3 summarize the primary 30-day Room 354 analysis, while Figure 4 is a separate one-day Room 361 reference example.
 
 ![Figure 1. Room 354 4-panel time-series comparison of VOC/CO2, humidity, temperature, and discharge air flow generated from the occupancy notebook.](figures/room354_feature_comparison.png)
 
@@ -220,13 +231,15 @@ Results currently supported directly by the notebook visualizations:
 
 ![Figure 3. Room 354 estimated occupancy over time with discharge air flow overlay generated from the airflow-aware notebook model.](figures/room354_estimated_occupancy.png)
 
-In the current Room 354 notebook, the strongest evidence for occupancy detection is the repeated joint rise of VOC and CO2 together with the more plausible airflow-adjusted CO2 anchor. These comparisons do not replace labeled accuracy metrics, but they do provide a reasonable basis for preferring the blended airflow-aware estimate over the simpler baseline in the current exploratory phase.
+![Figure 4. Room 361 single-day comparison of CO2, airflow, and estimated occupancy. A manual headcount of 34 people was taken at 1:30 PM and is used here as a limited ground-truth reference point. The larger estimated peak appears later, likely because CO2 takes time to accumulate around the sensor location.](figures/co2_occ.png)
+
+Taken together, the figures should be interpreted in two groups. Figures 1 through 3 summarize the primary 30-day Room 354 analysis, where CO2 and VOC carry most of the occupancy signal and temperature and humidity add only limited supporting information. Figure 4 is a separate one-day Room 361 reference example with a manual count of 34 people taken at 1:30 PM. Using the highlighted peak estimate of 42 people gives an absolute error of 8 people and a percent error of about 23.5 percent, but the larger estimated value appears after 1:30 PM rather than exactly at the count time. That delay is still reasonable from a building-physics perspective, since room volume, infiltration, and ventilation affect how quickly exhaled CO2 accumulates and disperses. Even with that limitation, the current results still support CO2- and VOC-centered occupancy estimation more strongly than temperature- or humidity-centered alternatives.
 
 TODO: Add validated performance metrics once vibration data or labeled occupancy windows are available.
 
 ## 6. Conclusions and Future Work
 
-The current Room 354 occupancy notebook shows that CO2 and VOC are still the strongest occupancy indicators in the available indoor air quality data, but airflow improves the model by replacing a fixed ventilation assumption with a time-varying ventilation proxy. The blended model produces an interpretable occupancy estimate over time and performs better than the airflow-aware CO2 baseline on several label-free metrics, including lower volatility and fewer extreme spikes. The strongest limitation is that no ground-truth occupancy labels are available and discharge airflow is only a proxy for true ventilation effectiveness, so the result should still be treated as a heuristic occupancy estimate rather than a validated headcount model.
+The current Room 354 occupancy notebook shows that CO2 and VOC are still the strongest occupancy indicators in the available indoor air quality data, while temperature and humidity provide only limited supporting value. That conclusion is based primarily on the 30-day Room 354 analysis. The strongest direct ground-truth reference currently included in the report is a separate one-day Room 361 manual headcount of 34 people taken at 1:30 PM; compared with the highlighted estimate of 42 people, that corresponds to an absolute error of 8 people and a percent error of about 23.5 percent. This is still only a limited qualitative check, especially because the larger estimated response appears later than the count time, likely due to delayed CO2 accumulation at the sensor location. Airflow improves the model by replacing a fixed ventilation assumption with a time-varying ventilation proxy, and the blended estimate remains more interpretable than the airflow-aware CO2 baseline alone. The strongest remaining limitation is that broader ground-truth occupancy labels are still unavailable and discharge airflow is only a proxy for true ventilation effectiveness, so the result should still be treated as a heuristic occupancy estimate rather than a fully validated headcount model.
 
 If this approach is validated with additional signals, it could support smart-building control strategies that reduce unnecessary HVAC runtime, improve room-level energy efficiency, and lower operating cost during low-occupancy periods. The immediate next step is to integrate TDMS vibration data and stronger validation evidence so the current estimate can be tested against more credible occupancy information.
 

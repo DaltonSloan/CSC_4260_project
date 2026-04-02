@@ -252,7 +252,11 @@ The next steps are to strengthen the estimate with additional evidence and valid
 
 TODO: Refine this section once validation data has been added so the final conclusion can summarize actual measured performance rather than exploratory plausibility.
 
-## 7. Appendix
+## 7. Jetstream Cluster Use
+The team plans to run a LSTM model once the TDMS data from the vibration sensors becomes available to do the crowd data prediction.
+TODO: Add report of experiments run on the cluster and how it assisted our modelling and analysis of our data.
+
+## 8. Appendix
 
 Repository and reproducibility references:
 

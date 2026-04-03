@@ -4,6 +4,13 @@ Team Members: Samuel Hartmann, Fengjun Han, Garrett Green, Dalton Sloan
 
 Domain Experts: Chandler Norman, Norman Walker, Elisabeth Humphrey, Dr. Steven Anton
 
+## Team Member Contributions
+
+Samuel Hartmann - Problem Statement, Data and Exploratory analysis, Methods and Tools, and Jetstream Useage
+Fengjun Han
+Garrett Green
+Dalton Sloan
+
 ## 1. Problem Statement
 
 The original project plan focused on evaluating HVAC efficiency in the Ashraf Islam Engineering Building at Tennessee Tech. After exploratory analysis, the project focus was narrowed to Room 354 occupancy estimation using indoor air quality signals, with airflow used as a ventilation adjustment. The main notebook-based question is whether occupancy can be inferred from two 30-day Room 354 exports. The IAQ export contains VOC, CO2, humidity, and temperature measurements. The FPB export contains zone CO2, humidity, temperature, and discharge air flow. A separate one-day Room 361 example is used later in the report only as a limited reference check rather than as the primary analysis dataset.
@@ -253,6 +260,7 @@ The next steps are to strengthen the estimate with additional evidence and valid
 TODO: Refine this section once validation data has been added so the final conclusion can summarize actual measured performance rather than exploratory plausibility.
 
 ## 7. Jetstream Cluster Use
+
 The team plans to run a LSTM model once the TDMS data from the vibration sensors becomes available to do the crowd data prediction.
 TODO: Add report of experiments run on the cluster and how it assisted our modelling and analysis of our data.
 

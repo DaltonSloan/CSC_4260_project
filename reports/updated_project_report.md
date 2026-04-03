@@ -8,7 +8,7 @@ Domain Experts: Chandler Norman, Norman Walker, Elisabeth Humphrey, Dr. Steven A
 
 Samuel Hartmann - Problem Statement, Data and Exploratory analysis, Methods and Tools, and Jetstream Useage
 Fengjun Han
-Garrett Green
+Garrett Green - Data and Exploratory analysis, Methods and Tools
 Dalton Sloan
 
 ## 1. Problem Statement

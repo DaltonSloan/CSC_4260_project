@@ -17,3 +17,6 @@ python-dotenv>=1.0.1
 # Notebook execution support
 ipykernel>=6.29.0
 jupyterlab==4.5.6
+
+# GPU array acceleration for notebooks in NVIDIA-enabled environments
+cupy-cuda12x>=13.4.0

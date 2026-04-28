@@ -38,6 +38,7 @@ from scripts.occupancy_pseudo_labels import (
     DEFAULT_MAX_OCCUPANCY,
     DEFAULT_MIN_OCCUPANCY,
     DEFAULT_OUTDOOR_CO2_PPM,
+    EFFECTIVE_RESAMPLE_MINUTES_ATTR,
     generate_pseudo_labels,
     load_room_fpb_timeseries,
     summarize_pseudo_labels,
@@ -93,10 +94,13 @@ def run_room361_pipeline(config: Room361PipelineConfig | None = None) -> dict[st
         max_occupancy=config.max_occupancy,
     )
     pseudo_label_summary = summarize_pseudo_labels(labeled, normalized_anchors)
+    effective_resample_minutes = int(
+        sensor.attrs.get(EFFECTIVE_RESAMPLE_MINUTES_ATTR, config.resample_minutes)
+    )
 
     feature_frame = engineer_temporal_features(
         labeled,
-        resample_minutes=config.resample_minutes,
+        resample_minutes=effective_resample_minutes,
         schedule_df=schedule_df,
     )
     feature_frame["source_anchor_tuple"] = parse_source_anchor_sets(feature_frame.get("source_anchor_ids"))

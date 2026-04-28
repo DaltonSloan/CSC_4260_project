@@ -31,6 +31,8 @@ CFM_TO_LPS = 0.471947
 DEFAULT_INTERPOLATION_MAX_GAP_MIN = 120
 DEFAULT_MIN_OCCUPANCY = 0.0
 DEFAULT_MAX_OCCUPANCY = 45.0
+EFFECTIVE_RESAMPLE_RULE_ATTR = "effective_resample_rule"
+EFFECTIVE_RESAMPLE_MINUTES_ATTR = "effective_resample_minutes"
 
 
 def load_room_fpb_timeseries(
@@ -58,6 +60,7 @@ def load_room_fpb_timeseries(
 
         df = df.copy()
         df[time_col] = pd.to_datetime(df[time_col], errors="coerce")
+        df["value"] = pd.to_numeric(df["value"], errors="coerce")
         df = df.dropna(subset=[time_col])
         frames.append(df)
 
@@ -70,6 +73,18 @@ def load_room_fpb_timeseries(
     if dedupe_cols:
         df = df.drop_duplicates(subset=dedupe_cols)
 
+    required_points = [
+        point_name
+        for point_name in POINT_NAME_MAP
+        if point_name in set(df["pointDisplayName"].dropna().unique())
+    ]
+    effective_resample_rule = _resolve_complete_bucket_rule(
+        df,
+        time_col=time_col,
+        requested_rule=resample_rule,
+        required_points=required_points,
+    )
+
     wide = (
         df.pivot_table(
             index=time_col,
@@ -78,12 +93,22 @@ def load_room_fpb_timeseries(
             aggfunc="mean",
         )
         .sort_index()
-        .resample(resample_rule)
+        .resample(effective_resample_rule, origin=df[time_col].min())
         .mean()
         .rename(columns=POINT_NAME_MAP)
     )
 
+    required_columns = [
+        POINT_NAME_MAP[point_name]
+        for point_name in required_points
+        if POINT_NAME_MAP[point_name] in wide.columns
+    ]
+    if required_columns:
+        wide = wide.loc[wide[required_columns].notna().all(axis=1)]
+
     sensor = wide.rename_axis("ts").copy()
+    sensor.attrs[EFFECTIVE_RESAMPLE_RULE_ATTR] = effective_resample_rule
+    sensor.attrs[EFFECTIVE_RESAMPLE_MINUTES_ATTR] = _rule_to_minutes(effective_resample_rule)
     sensor["flow_lps"] = sensor["flow_cfm"] * CFM_TO_LPS
     sensor["delta_co2_ppm"] = (sensor["co2_ppm"] - outdoor_co2_ppm).clip(lower=0)
     sensor["occ_physics_est"] = (
@@ -103,6 +128,51 @@ def load_room_fpb_timeseries(
     sensor["sensor_stable"] = _sensor_stability_mask(sensor)
 
     return sensor
+
+
+def _resolve_complete_bucket_rule(
+    frame: pd.DataFrame,
+    *,
+    time_col: str,
+    requested_rule: str,
+    required_points: list[str],
+) -> str:
+    requested_minutes = _rule_to_minutes(requested_rule)
+    if requested_minutes is None or not required_points:
+        return requested_rule
+
+    required_minutes = requested_minutes
+    for point_name in required_points:
+        point_times = (
+            frame.loc[frame["pointDisplayName"] == point_name, time_col]
+            .dropna()
+            .drop_duplicates()
+            .sort_values()
+        )
+        if len(point_times) < 2:
+            continue
+
+        max_gap_minutes = point_times.diff().dropna().dt.total_seconds().max() / 60.0
+        required_minutes = max(required_minutes, math.ceil(max_gap_minutes))
+
+    return f"{required_minutes}min"
+
+
+def _rule_to_minutes(rule: str) -> int | None:
+    try:
+        offset = pd.tseries.frequencies.to_offset(rule)
+    except (TypeError, ValueError):
+        return None
+
+    try:
+        delta = pd.to_timedelta(offset.nanos, unit="ns")
+    except (TypeError, ValueError):
+        return None
+
+    total_seconds = delta.total_seconds()
+    if total_seconds <= 0:
+        return None
+    return max(1, math.ceil(total_seconds / 60.0))
 
 
 def normalize_anchor_table(anchor_df: pd.DataFrame) -> pd.DataFrame:

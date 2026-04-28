@@ -5,5 +5,13 @@ FROM mcr.microsoft.com/devcontainers/python:1-${PYTHON_VARIANT}
 # Remove it so feature installers that run apt-get update succeed consistently.
 RUN rm -f /etc/apt/sources.list.d/yarn.list
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        pandoc \
+        texlive-fonts-recommended \
+        texlive-plain-generic \
+        texlive-xetex \
+    && rm -rf /var/lib/apt/lists/*
+
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=1

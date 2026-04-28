@@ -92,7 +92,7 @@ def engineer_temporal_features(
             ).mean()
             new_columns[f"{column}_roll_std_{minutes}m"] = series.rolling(
                 window_steps,
-                min_periods=2,
+                min_periods=min(2, window_steps),
             ).std()
             new_columns[f"{column}_slope_{minutes}m"] = _rolling_slope(
                 series,
@@ -153,7 +153,7 @@ def _rolling_slope(
     window_steps: int,
     step_minutes: int,
 ) -> pd.Series:
-    return series.rolling(window_steps, min_periods=2).apply(
+    return series.rolling(window_steps, min_periods=min(2, window_steps)).apply(
         lambda values: _linear_slope(values, step_minutes=step_minutes),
         raw=True,
     )

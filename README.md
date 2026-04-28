@@ -52,9 +52,23 @@ Notes:
 
 ## 2) Setup Local Python Environment (Alternative)
 
+### macOS/Linux
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+### Windows (PowerShell)
+
+Use a separate local venv so you do not mix Windows packages with the
+Linux-only `.venv` that may be created inside the devcontainer.
+
+```powershell
+py -m venv .venv-win
+.\.venv-win\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```

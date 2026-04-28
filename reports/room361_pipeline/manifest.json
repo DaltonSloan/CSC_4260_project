@@ -1,0 +1,25 @@
+{
+  "config": {
+    "input_files": [
+      "data/4_3To4_9.csv"
+    ],
+    "anchor_file": "data/room361_manual_anchors.csv",
+    "schedule_file": null,
+    "output_dir": "reports/room361_pipeline",
+    "time_col": "dateTime",
+    "resample_rule": "5min",
+    "resample_minutes": 5,
+    "min_occupancy": 0.0,
+    "max_occupancy": 45.0,
+    "outdoor_co2_ppm": 415.0,
+    "co2_generation_lps_per_person": 0.005,
+    "interpolation_max_gap_min": 120,
+    "random_state": 42,
+    "bootstrap_iterations": 150
+  },
+  "best_regression_model": "gradient_boosting_residual",
+  "best_classifier_model": "gradient_boosting_band_classifier",
+  "candidate_feature_count": 184,
+  "pseudo_labeled_rows": 14,
+  "anchor_rows": 3
+}

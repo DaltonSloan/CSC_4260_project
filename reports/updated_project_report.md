@@ -6,10 +6,13 @@ Domain Experts: Chandler Norman, Norman Walker, Elisabeth Humphrey, Dr. Steven A
 
 ## Team Member Contributions
 
-Samuel Hartmann - Problem Statement, Data and Exploratory analysis, Methods and Tools, and Jetstream Useage
+Samuel Hartmann - Problem Statement, Data and Exploratory analysis, Methods and Tools, Jetstream Useage, and Report
+
 Fengjun Han
-Garrett Green - Data and Exploratory analysis, Methods and Tools
-Dalton Sloan
+
+Garrett Green - Data and Exploratory analysis, Methods and Tools, and Report/Slides
+
+Dalton Sloan - Problem Statement, Data and Exploratory analysis, Methods and Tools, Jetstream Useage, and Report
 
 ## 1. Problem Statement
 
@@ -261,8 +264,8 @@ TODO: Refine this section once validation data has been added so the final concl
 
 ## 7. Jetstream Cluster Use
 
-The team plans to run a LSTM model once the TDMS data from the vibration sensors becomes available to do the crowd data prediction.
-TODO: Add report of experiments run on the cluster and how it assisted our modelling and analysis of our data.
+Cluster Differences:
+Both clusters have A100 40GB Nvidia GPUS and the local cluster has faster 64 core cpus compared to the 32 core CPUs on the NAIRR cluster. The local cluster gives us full spack access and is more performant for GPU tasks. We tried to run a random forest cpu model locally on our laptops and the NAIRR cluster and our laptops finised wrunning the simulation in the same time it took the NAIRR to run one iteration. Overall I don't see much value in the NAIRR cluster as I got an error saying only 6 nodes were available to us and our local cluster has 20 GPUS so we have more resources available here than is provided by the NAIRR project. We also have the advantage of being able to ensemble a pipeline of multiple GPU nodes together to tackle a full agentic pipeline.
 
 ## 8. Appendix
 
